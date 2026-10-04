@@ -1,0 +1,39 @@
+name: daily-cto-intelligence
+on:
+  schedule:
+    # 08:00 IST = 02:30 UTC daily
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: npm install --global @opencode/cli
+
+      - name: Run CTO research
+        run: |
+          TODAY=$(date +%F)
+          opencode run --standalone --agent cto-research --model opencode/muse-spark-1.3-contributor-free "Run today's CTO intelligence research for $TODAY. Read reports/index.md and the 2-3 most recent reports/daily/*.md first to avoid duplication. Save full report to reports/daily/$TODAY.md and update reports/index.md." > /tmp/research-output.txt 2>&1
+          cat /tmp/research-output.txt
+        env:
+          # Needed if you switch to a paid/API-key model later.
+          # For Zen free models, login via OpenCode console; see README.
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+
+      - name: Commit report
+        run: |
+          git config user.name "cto-bot"
+          git config user.email "cto-bot@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "CTO intelligence $(date +%F)"
+          git push
+
+      - name: Send Telegram briefing
+        if: success()
+        run: python scripts/send_telegram.py --report reports/daily/$(date +%F).md
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
