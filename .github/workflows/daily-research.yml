@@ -1,9 +1,10 @@
 name: daily-cto-intelligence
 on:
-  schedule:
-    # 08:00 IST = 02:30 UTC daily
-    - cron: "30 2 * * *"
   workflow_dispatch:
+  # Scheduled run disabled: opencode contributor-free rejects service-account keys in CI
+  # (Error: Reconnect OpenCode Console). Generation runs on Windows Task Scheduler instead.
+  # schedule:
+  #   - cron: "30 2 * * *"
 
 jobs:
   research:
