@@ -12,6 +12,7 @@ Commands:
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -68,8 +69,11 @@ def fast_search(query: str, limit=5):
 
 def ai_ask(question: str, timeout=150) -> str:
     # Uses local OpenCode login (no service key needed). Slow.
-    cmd = [
-        "opencode", "run", "--agent", "cto-research",
+    # Windows: resolve opencode.exe via PATH, fallback to cmd /c.
+    exe = shutil.which("opencode") or shutil.which("opencode.exe")
+    base = [exe] if exe else ["cmd", "/c", "opencode"]
+    cmd = base + [
+        "run", "--agent", "cto-research",
         f"Answer concisely (max 25 lines) using reports/daily/*.md and knowledge/*.md first, then general knowledge. Question: {question}",
     ]
     try:
