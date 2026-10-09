@@ -34,8 +34,10 @@ jobs:
 
       - name: Commit report
         run: |
-          git config user.name "cto-bot"
-          git config user.email "cto-bot@users.noreply.github.com"
+          # Use account-linked identity so commits count toward green graph.
+          # Override via repo secrets GIT_USER_NAME / GIT_USER_EMAIL if needed.
+          git config user.name "${{ secrets.GIT_USER_NAME || 'Aryan Kalal' }}"
+          git config user.email "${{ secrets.GIT_USER_EMAIL || 'aryankalal0047@gmail.com' }}"
           git pull --rebase origin main || true
           git add reports/
           if git diff --cached --quiet; then

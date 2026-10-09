@@ -48,6 +48,17 @@ Write-Host "Sending Telegram ..."
 python scripts/send_telegram.py --report $REPORT
 
 Write-Host "Pushing to GitHub ..."
+# Green contributions require author email linked to GitHub. Enforce correct identity.
+$wantName = "Aryan Kalal"
+$wantEmail = "aryankalal0047@gmail.com"
+$curEmail = (git config user.email).Trim()
+if (-not $curEmail) {
+  git config user.name $wantName
+  git config user.email $wantEmail
+  Write-Host "git identity set to $wantEmail"
+} elseif ($curEmail -ne $wantEmail) {
+  Write-Host "WARNING: git user.email is $curEmail, expected $wantEmail — commits may not count green. Fix: git config user.email $wantEmail"
+}
 try { git pull --rebase origin main 2>$null } catch { Write-Host "pull skipped (offline or clean)." }
 git add reports/
 git diff --cached --quiet
