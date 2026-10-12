@@ -141,7 +141,7 @@ Every `reports/daily/YYYY-MM-DD.md` follows `.opencode/agents/cto-research.md`:
 
 Rules: P0 > P1 > P2 > P3. Ignore hype, clickbait, gossip, repeats. Secondary sources for discovery only; **primary sources for claims**. Honest gaps allowed ("No verified P0 from QMS vendors — honest gap preserved").
 
-Latest: [2026-10-09](./reports/daily/2026-10-09.md) — NATS 2.15.1 final, Step 5 Preview, AWS $50M science credits.
+Latest: [2026-10-12](./reports/daily/2026-10-12.md) — OpenCode v1.19.0 upgrade gate, Temporal v1.32.1 correction, quiet window disclosed.
 
 ---
 
