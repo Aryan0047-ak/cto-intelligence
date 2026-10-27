@@ -98,6 +98,7 @@ Then in Telegram: `/brief` for latest TOP 5, `/search nats` for local hits, `/as
 | ---- | ------- |
 | `powershell -File scripts/daily.ps1` | Full pipeline: research → index sync → Telegram → commit → push |
 | `scripts/daily.ps1 -SkipResearch` | Resend/commit existing `reports/daily/<Date>.md` without LLM call |
+| `python scripts/rollup_weekly.py --date YYYY-MM-DD` | Deterministic weekly sheet in `reports/weekly/` (deduped highlights, carried actions, source union, coverage gaps) |
 | Windows Task Scheduler | Unattended daily trigger (service-account keys rejected in CI, so local scheduling is primary) |
 | `.github/workflows/daily-research.yml` | Manual `workflow_dispatch` fallback; scheduled cron is **disabled** (see file header) with `OPENCODE_API_KEY` secret documented |
 

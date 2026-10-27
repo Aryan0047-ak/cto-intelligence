@@ -39,7 +39,8 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from urllib.parse import urlsplit
+
+from report_utils import extract_urls, normalize_url
 
 REQUIRED_SECTIONS: tuple[str, ...] = (
     "TOP 5 - MUST KNOW",
@@ -54,7 +55,6 @@ REQUIRED_SECTIONS: tuple[str, ...] = (
 )
 
 FILENAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}\.md$")
-URL_RE = re.compile(r"https?://[^\s<>()\[\]\"']+", re.IGNORECASE)
 PLACEHOLDER_RE = re.compile(
     r"\b(?:TBD|TKTK|PLACEHOLDER)\b|lorem\s+ipsum|\{\{[^}]*\}\}", re.IGNORECASE
 )
@@ -111,20 +111,6 @@ def split_sections(md: str) -> list[tuple[str, str]]:
         end = headings[index + 1].start() if index + 1 < len(headings) else len(md)
         sections.append((normalize_title(match.group(2)), md[match.end():end].strip()))
     return sections
-
-
-def extract_urls(text: str) -> set[str]:
-    return {m.group(0).rstrip(".,);:!?*_`") for m in URL_RE.finditer(text)}
-
-
-def normalize_url(url: str) -> str:
-    """Drop scheme, ``www.``, query string, fragment and trailing slash."""
-    parts = urlsplit(url.strip())
-    host = parts.netloc.lower()
-    if host.startswith("www."):
-        host = host[4:]
-    path = parts.path.rstrip("/")
-    return f"{host}{path}".lower()
 
 
 def _check_sections(sections: list[tuple[str, str]], min_chars: int) -> list[Finding]:

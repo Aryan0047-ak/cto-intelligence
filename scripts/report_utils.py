@@ -15,12 +15,14 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 TOP5_LIMIT = 3500
 MESSAGE_LIMIT = 4000
 TRUNCATION_MARKER = "\n...(truncated)"
 
 _HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$", re.MULTILINE)
+URL_RE = re.compile(r"https?://[^\s<>()\[\]\"']+", re.IGNORECASE)
 
 
 def find_section(md: str, title_prefix: str) -> str | None:
@@ -54,6 +56,20 @@ def extract_top5(md: str, limit: int = TOP5_LIMIT) -> str:
 def read_report(path: str | Path) -> str:
     """Read a report as UTF-8, tolerating files written by older Windows shells."""
     return Path(path).read_text(encoding="utf-8", errors="replace")
+
+
+def extract_urls(text: str) -> set[str]:
+    """Return every http(s) URL, stripped of trailing punctuation from Markdown."""
+    return {m.group(0).rstrip(".,);:!?*_`") for m in URL_RE.finditer(text)}
+
+
+def normalize_url(url: str) -> str:
+    """Drop scheme, ``www.``, query string, fragment and trailing slash."""
+    parts = urlsplit(url.strip())
+    host = parts.netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return f"{host}{parts.path.rstrip('/')}".lower()
 
 
 def build_message(

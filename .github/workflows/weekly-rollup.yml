@@ -1,0 +1,41 @@
+name: weekly-rollup
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 03:00 UTC: roll up the week that just ended.
+    - cron: "0 3 * * 1"
+
+jobs:
+  rollup:
+    name: Weekly sheet
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sheet for the last completed ISO week
+        run: |
+          PREV=$(date -u -d 'yesterday' +%F)
+          echo "rolling up week containing $PREV"
+          python scripts/rollup_weekly.py --date "$PREV" --force
+
+      - name: Commit if changed
+        run: |
+          git config user.name "${{ secrets.GIT_USER_NAME || 'Aryan Kalal' }}"
+          git config user.email "${{ secrets.GIT_USER_EMAIL || 'aryankalal0047@gmail.com' }}"
+          git add reports/weekly/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            LABEL=$(date -u -d 'yesterday' +%G-W%V)
+            git commit -m "docs(reports): add weekly rollup $LABEL"
+            git push
+          fi
