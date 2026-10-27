@@ -20,6 +20,8 @@ from pathlib import Path
 
 import requests
 
+from report_utils import extract_top5
+
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports" / "daily"
 KNOW = ROOT / "knowledge"
@@ -44,10 +46,7 @@ def latest_reports(n=5):
     return files[:n]
 
 def read_top5(md_path: Path) -> str:
-    md = md_path.read_text(encoding="utf-8", errors="ignore")
-    m = re.search(r"(TOP 5.*?)(?=\n## |\n# |\Z)", md, re.S | re.I)
-    sec = m.group(1).strip() if m else md[:3000]
-    return sec[:3500]
+    return extract_top5(md_path.read_text(encoding="utf-8", errors="ignore"))
 
 def fast_search(query: str, limit=5):
     q = query.lower()

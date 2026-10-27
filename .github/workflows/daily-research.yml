@@ -32,6 +32,9 @@ jobs:
           # Required in CI for opencode Zen free models. Add as repo secret OPENCODE_API_KEY.
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
 
+      - name: Validate briefing contract
+        run: python scripts/validate_report.py "reports/daily/$(date +%F).md"
+
       - name: Commit report
         run: |
           # Use account-linked identity so commits count toward green graph.

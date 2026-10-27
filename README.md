@@ -141,6 +141,25 @@ Every `reports/daily/YYYY-MM-DD.md` follows `.opencode/agents/cto-research.md`:
 
 Rules: P0 > P1 > P2 > P3. Ignore hype, clickbait, gossip, repeats. Secondary sources for discovery only; **primary sources for claims**. Honest gaps allowed ("No verified P0 from QMS vendors — honest gap preserved").
 
+### Quality gates
+
+Two checks keep the contract honest:
+
+```bash
+# every committed briefing (same check as ci.yml)
+python scripts/validate_report.py reports/daily/*.md
+
+# unit tests: parser, validator rules, notifier
+python -m pytest -q
+```
+
+`validate_report.py` enforces the filename, the nine sections and their order,
+non-stub bodies, no unresolved placeholders, and at least 3 unique sources.
+A duplicate-heavy day raises `W001` (warning); add `--fail-on-duplicates` to make
+it fatal. Exit codes: `0` pass, `1` contract violation, `2` unreadable file.
+`daily-research.yml` runs the same validator on the report *before* it commits,
+so a malformed briefing cannot reach `main`.
+
 Latest: [2026-10-12](./reports/daily/2026-10-12.md) — OpenCode v1.19.0 upgrade gate, Temporal v1.32.1 correction, quiet window disclosed.
 
 ---
@@ -198,6 +217,7 @@ Honest mapping — only what exists in this repo:
 | Systems engineering | Agent → Markdown DB → bot → scheduler wired into one loop |
 | Reliability fundamentals | Service-account CI failure diagnosed → local execution; `--dry-run`, missing-report guards |
 | Knowledge engineering | `reports/` ephemeral + `knowledge/` promoted, `sources/` allow-list |
+| Testing & CI gates | `tests/` (pytest: parser, validator rules, notifier dry-run) + `ci.yml` validating every committed briefing |
 
 ---
 
