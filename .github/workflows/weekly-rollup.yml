@@ -2,9 +2,23 @@ name: weekly-rollup
 
 on:
   workflow_dispatch:
+    inputs:
+      date:
+        description: "Any date inside the week to roll up (blank = yesterday)"
+        required: false
+        type: string
   schedule:
     # Mondays 03:00 UTC: roll up the week that just ended.
     - cron: "0 3 * * 1"
+
+# Without this the default token is read-only and every `git push` in this
+# workflow fails with 403 (runs 41432323157 and 42607768334 both died there).
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-rollup
+  cancel-in-progress: false
 
 jobs:
   rollup:
@@ -21,11 +35,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build sheet for the last completed ISO week
+      - name: Build sheet for the target ISO week
         run: |
-          PREV=$(date -u -d 'yesterday' +%F)
-          echo "rolling up week containing $PREV"
-          python scripts/rollup_weekly.py --date "$PREV" --force
+          TARGET="${{ inputs.date }}"
+          if [ -z "$TARGET" ]; then
+            TARGET=$(date -u -d 'yesterday' +%F)
+          fi
+          echo "rolling up week containing $TARGET"
+          python scripts/rollup_weekly.py --date "$TARGET" --force
 
       - name: Commit if changed
         run: |
@@ -35,7 +52,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
-            LABEL=$(date -u -d 'yesterday' +%G-W%V)
-            git commit -m "docs(reports): add weekly rollup $LABEL"
+            LABEL=$(git diff --cached --name-only | sed -n 's#reports/weekly/\(.*\)\.md#\1#p' | head -1)
+            git commit -m "docs(reports): add weekly rollup ${LABEL}"
             git push
           fi

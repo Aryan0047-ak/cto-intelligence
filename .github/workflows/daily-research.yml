@@ -6,6 +6,15 @@ on:
   # schedule:
   #   - cron: "30 2 * * *"
 
+# The commit step below pushes to main; without this the token is read-only
+# and `git push` fails with 403 even on a manual dispatch.
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-research
+  cancel-in-progress: false
+
 jobs:
   research:
     runs-on: ubuntu-latest
